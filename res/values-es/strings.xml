@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<resources>
+    <string name="app_name">DownDroid</string>    
+	<string name="paste">Pegar enlaces</string>    
+	<string name="add">Añadir enlace</string>
+	<string name="pause">Pausar</string>
+	<string name="resume">Continuar</string>
+	<string name="clear">Limpiar</string>
+	<string name="settings">Preferencias</string>
+	<string name="download_list">Lista de descarga</string>
+	<string name="notification_title">DownDroid</string>
+	<string name="notification_started">DownDroid ha empezado</string>
+	<string name="notification_started_desc">Descargando archivos</string>
+	<string name="notification_finished">DownDroid ha terminado</string>
+	<string name="notification_finished_desc">Descargas finalizadas!</string>
+	<string name="preferences">Preferencias</string>
+	<string name="megaupload_user">Usuario Megaupload :</string>
+	<string name="megaupload_password">Contraseña Megaupload :</string>
+	<string name="rapidshare_user">Usuario Rapidshare :</string>
+	<string name="rapidshare_password">Contraseña Rapidshare :</string>
+	<string name="save_preferences">Guardar preferencias</string>
+	<string name="add_download">Añadir descarga</string>
+	<string name="add_to_download_list">Añadir a la lista de descarga</string>
+	<string name="invalid_link">Enlace no válido (debe empezar con http://)</string>
+	<string name="no_links_found_on_clipboard">No se han encontrado enlaces en el portapapeles</string>
+	<string name="error_megaupload">Cuenta premium de Megaupload requerida</string>
+	<string name="error_rapidshare">Cuenta premium de Rapidshare requerida</string>
+	<string name="error_link">Enlace no válido</string>
+	<string name="loading_file">Cargando fichero</string>
+	<string name="file">Fichero</string>
+	<string name="welcome">\nBienvenido a DownDroid.\n\nPuedes añadir descargas manualmente o pegarlas desde el portapapeles (primer icono).\n\nPara descargar de megaupload o rapidshare configura tu cuenta premium en Preferencias.\n\nTus descargas se guardarán en la tarjeta SD (carpeta dd).</string>
+</resources>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DownDroid</string>    
+	<string name="paste">Paste links</string>    
+	<string name="add">Add link</string>
+	<string name="pause">Pause</string>
+	<string name="resume">Resume</string>
+	<string name="clear">Clear</string>
+	<string name="settings">Settings</string>
+	<string name="download_list">Download list</string>
+	<string name="notification_title">DownDroid</string>
+	<string name="notification_started">DownDroid started</string>
+	<string name="notification_started_desc">Downloading files</string>
+	<string name="notification_finished">DownDroid finished</string>
+	<string name="notification_finished_desc">Downloads completed!</string>
+	<string name="preferences">Preferences</string>
+	<string name="megaupload_user">Megaupload user :</string>
+	<string name="megaupload_password">Megaupload password :</string>
+	<string name="rapidshare_user">Rapidshare user :</string>
+	<string name="rapidshare_password">Rapidshare password :</string>
+	<string name="save_preferences">Save preferences</string>
+	<string name="add_download">Add download</string>
+	<string name="add_to_download_list">Add to download list</string>
+	<string name="invalid_link">Invalid link (must start with http://)</string>
+	<string name="no_links_found_on_clipboard">No links found in clipboard</string>
+	<string name="error_megaupload">Megaupload premium account required</string>
+	<string name="error_rapidshare">Rapidshare premium account required</string>
+	<string name="error_link">Invalid link</string>
+	<string name="loading_file">Loading file</string>
+	<string name="file">File</string>
+	<string name="welcome">\nWelcome to DownDroid.\n\nYou can add downloads manually or paste them from clipboard (first icon).\n\nTo download megaupload or rapidshare links set your premium account in application settings.\n\nYour downloads are stored in SD card (dd folder).</string>
+</resources>
