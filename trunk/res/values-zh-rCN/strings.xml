@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DownDroid</string>    
+	<string name="paste">粘贴链接</string>    
+	<string name="add">添加链接</string>
+	<string name="pause">暂停</string>
+	<string name="resume">继续</string>
+	<string name="clear">清除</string>
+	<string name="settings">设置</string>
+	<string name="download_list">下载列表</string>
+	<string name="notification_title">DownDroid</string>
+	<string name="notification_started">DownDroid 已开始</string>
+	<string name="notification_started_desc">正在下载的文件</string>
+	<string name="notification_finished">DownDroid 已完成</string>
+	<string name="notification_finished_desc">下载完成!</string>
+	<string name="preferences">首选项</string>
+	<string name="megaupload_user">Megaupload 用户名 :</string>
+	<string name="megaupload_password">Megaupload 密码 :</string>
+	<string name="rapidshare_user">Rapidshare 用户名 :</string>
+	<string name="rapidshare_password">Rapidshare 密码 :</string>
+	<string name="save_preferences">保存首选项</string>
+	<string name="add_download">添加下载</string>
+	<string name="add_to_download_list">添加到下载列表</string>
+	<string name="invalid_link">无效的链接 (必须开始于 http://)</string>
+	<string name="no_links_found_on_clipboard">剪贴板中没有找到链接</string>
+	<string name="error_megaupload">需要 Megaupload 付费账户</string>
+	<string name="error_rapidshare">需要 Rapidshare 付费账户</string>
+	<string name="error_link">无效链接</string>
+	<string name="loading_file">正在加载文件</string>
+	<string name="file">文件</string>
+	<string name="welcome">\n欢迎使用 DownDroid。\n\n您可以通过手动输入或从剪贴板(第一个图标)中粘贴来添加下载。\n\n要下载 megaupload 或 rapidshare 链接您需要在程序设置中设置您的帐户。\n\n您的下载保存在 SD 卡 (dd 文件夹)。</string>
+</resources>
