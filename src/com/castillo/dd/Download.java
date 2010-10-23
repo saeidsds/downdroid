@@ -12,9 +12,12 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Observable;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,6 +70,8 @@ class Download extends Observable implements Runnable {
     private int status; // current status of download
     private String fileName;
     private int i;
+    private long launchTime=0;
+    private long startTime=0;
     
     Preferences prefs;
     
@@ -109,6 +114,45 @@ class Download extends Observable implements Runnable {
     // Get this download's status.
     public int getStatus() {
         return status;
+    }
+    
+    // Get this download's launch Time
+    public long getLaunchTime() {
+        return launchTime;
+    }
+    
+    // Get this download's ellapsed time
+    public String getEllapsedTime() {
+    	SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+    	dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+    	Calendar cal = Calendar.getInstance();
+    	long elapsed = cal.getTimeInMillis();
+    	elapsed=elapsed-startTime;
+    	cal.setTimeInMillis(elapsed);
+    	return dateFormat.format(cal.getTime());
+    }
+    
+    // Get this download's speed
+    public float getSpeed() {
+    	float s=downloaded/1024;
+    	Calendar cal = Calendar.getInstance();
+    	long elapsed = cal.getTimeInMillis();
+    	elapsed=elapsed-startTime;
+    	elapsed=elapsed/1000;
+    	s=s/elapsed;
+    	return s;
+    }
+
+    // Get this download's remaining time
+    public String getRemainingTime() {
+    	SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+    	dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+    	Calendar cal = Calendar.getInstance();
+    	float kbs=(size-downloaded)/1024;
+    	float seconds=kbs/getSpeed();
+    	long millis=(long)(seconds*1000);
+    	cal.setTimeInMillis(millis);    	
+    	return dateFormat.format(cal.getTime());
     }
     
     // Pause this download.
@@ -348,6 +392,8 @@ class Download extends Observable implements Runnable {
         InputStream stream = null;
         
         try {
+        	if (launchTime==0)
+        		launchTime=Calendar.getInstance().getTimeInMillis();
             // Open connection to URL.
             HttpURLConnection connection =
                     (HttpURLConnection) url.openConnection();
@@ -499,6 +545,8 @@ class Download extends Observable implements Runnable {
 	            
 	            // Open file and seek to the end of it.
 	            fileName=getFileName(connection.getURL());
+	            if (startTime==0)
+	            	startTime=Calendar.getInstance().getTimeInMillis();
 	            file = new RandomAccessFile("/sdcard/dd/"+fileName, "rw");
 	            file.seek(downloaded);
 	            

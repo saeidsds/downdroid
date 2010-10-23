@@ -24,9 +24,7 @@ public class DownloadService extends Service {
     	SharedPreferences mySharedPreferences = getSharedPreferences(DownDroid.PREFERENCES,mode);
     	Preferences p=new Preferences();
     	p.setMegaupload_user(mySharedPreferences.getString("megaupload_user", null));
-    	p.setMegaupload_password(mySharedPreferences.getString("megaupload_password", null));
-    	p.setRapidshare_user(mySharedPreferences.getString("rapidshare_user", null));
-    	p.setRapidshare_password(mySharedPreferences.getString("rapidshare_password", null));
+    	p.setMegaupload_password(mySharedPreferences.getString("megaupload_password", null));    	
     	return p;
     }
 	
@@ -92,7 +90,27 @@ public class DownloadService extends Service {
 		public String getDownloadFilename(int position) throws RemoteException {
 			Download download=downloads.get(position);			
 			return download.getFileName();
-		}		
+		}	
+		
+		public String getDownloadEllapsedTime(int position) throws RemoteException {
+			Download download=downloads.get(position);			
+			return (String)download.getEllapsedTime();
+		}
+		
+		public String getDownloadRemainingTime(int position) throws RemoteException {
+			Download download=downloads.get(position);			
+			return (String)download.getRemainingTime();
+		}
+		
+		public float getDownloadSpeed(int position) throws RemoteException {
+			Download download=downloads.get(position);			
+			return (float)download.getSpeed();
+		}
+		
+		public long getDownloadLaunchTime(int position) throws RemoteException {
+			Download download=downloads.get(position);			
+			return (long)download.getLaunchTime();
+		}
 
 	};
 	

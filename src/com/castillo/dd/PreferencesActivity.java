@@ -61,7 +61,7 @@ public class PreferencesActivity extends Activity
 		ll.addView(lmegauploadpassword,params);
 		ll.addView(tmegauploadpassword,params);
 		
-		TextView lrapidshareuser=new TextView(getApplicationContext());
+		/*TextView lrapidshareuser=new TextView(getApplicationContext());
 		lrapidshareuser.setText(getResources().getString(R.string.rapidshare_user));
 		EditText trapidshareuser=new EditText(getApplicationContext());
 		trapidshareuser.setTag("rapidshareuser");
@@ -74,7 +74,7 @@ public class PreferencesActivity extends Activity
 		trapidsharepassword.setText(prefs.getRapidshare_password());
 		trapidsharepassword.setTag("rapidsharepassword");
 		ll.addView(lrapidsharepassword,params);
-		ll.addView(trapidsharepassword,params);
+		ll.addView(trapidsharepassword,params);*/
 		
 		Button bSave=new Button(getApplicationContext());
 		bSave.setText(getResources().getString(R.string.save_preferences));	    
