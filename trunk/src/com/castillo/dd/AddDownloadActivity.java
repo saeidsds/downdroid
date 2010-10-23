@@ -47,7 +47,7 @@ public class AddDownloadActivity extends Activity
 		EditText turl=new EditText(getApplicationContext());
 		turl.setTag("url");
 		turl.setTextSize(14);
-		turl.setText("http://");
+		turl.setText("http://www.megaupload.com/?d=");
 		ll.addView(lurl,params);
 		ll.addView(turl,params);	    
 		Button bSave=new Button(getApplicationContext());

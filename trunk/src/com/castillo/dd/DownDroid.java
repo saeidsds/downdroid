@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import android.app.Activity;
+import android.app.ListActivity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -23,23 +24,23 @@ import android.text.ClipboardManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.LinearLayout.LayoutParams;
 
-public class DownDroid extends Activity
+public class DownDroid extends ListActivity
 {
-	final public ArrayList<ARProgressBar> aps=new ArrayList<ARProgressBar>();
+	private ArrayList<PendingDownload> m_options = new ArrayList<PendingDownload>();
+	private DownloadListAdapter m_adapter;
 	
     public static final String PREFERENCES = "DownDroid_preferences";
 	private static final int PROGRESS = 0xDEADBEEF;
 	protected int mProgress;
 	protected boolean mCancelled;
 	int download_index=0;
-	LinearLayout ll;		
 	protected TextView tvHelp;
 	
 	private DSInterface dsInterface;
@@ -59,45 +60,45 @@ public class DownDroid extends Activity
         @Override
         public void handleMessage(Message msg) {
             if ((msg.what == PROGRESS) && (!mCancelled)) {
-            	for (int i=0;i<aps.size();i++)
+            	for (int i=0;i<m_options.size();i++)
             	{
             		if (i==download_index)
             		{
             			try
             			{
-	            			ARProgressBar ap=aps.get(i);
 	            			int status=dsInterface.getDownloadStatus(i);
+	            			m_options.get(i).setStatus(status);
+	            			m_options.get(i).setFilename(dsInterface.getDownloadFilename(i));
 	            			if (status==Download.START)
 	            				dsInterface.downloadFile(i);
-	            			else if (status==Download.COMPLETE || status>=Download.ERROR)
+	            			else if (status==Download.COMPLETE)// || status>=Download.ERROR)
 	            			{
-	            				ap.invalidate();
 	            				download_index++;
-	            				if (download_index>=aps.size() || aps.size()==0)
+	            				if (download_index>=m_options.size() || m_options.size()==0)
 	            				{
 	            	            	notificationManager.cancel(1);
 	            	            	notification(getResources().getString(R.string.notification_finished),getResources().getString(R.string.notification_finished_desc));
 	            	            	notificationManager.cancel(1);
 	            				}
 	            			}
-	            			
+	            			m_options.get(i).setLaunchTime(dsInterface.getDownloadLaunchTime(download_index));
 	            			if (status!=Download.COMPLETE)
 	            			{
-	            				try
-	            				{
-	            					ap.setPosition(dsInterface.getDownloadProgress(download_index));
-	            				}
-	            				catch (Exception ex){}
+	            				m_options.get(i).setProgress(dsInterface.getDownloadProgress(download_index));
+	            				m_options.get(i).setEllapsedTime(dsInterface.getDownloadEllapsedTime(download_index));
+	            				m_options.get(i).setRemainingTime(dsInterface.getDownloadRemainingTime(download_index));
+	            				m_options.get(i).setSpeed(dsInterface.getDownloadSpeed(download_index));	            				
 	            			}
 	            			else
-	            				ap.setPosition(100);
+	            				m_options.get(i).setProgress(100);
             			}
             			catch (Exception e)
             			{
             				Log.e(getString(R.string.app_name), Log.getStackTraceString(e));
             			}
             		}
-            	}
+            	}            	
+            	m_adapter.notifyDataSetChanged(); 
             	sendMessageDelayed(obtainMessage(PROGRESS), 50);
             }            
         }       
@@ -119,40 +120,34 @@ public class DownDroid extends Activity
     public void onCreate(Bundle icicle)
     {
         super.onCreate(icicle);
+        setContentView(R.layout.main);
+        
+        ensureUi();
         
         this.bindService(new Intent(DownDroid.this,DownloadService.class),
                 mConnection, Context.BIND_AUTO_CREATE);
         
         new File("/sdcard/dd").mkdirs();        
-        
-        LinearLayout ll0=new LinearLayout(getApplicationContext());
-        ll0.setOrientation(LinearLayout.VERTICAL);
-        
-        ll=new LinearLayout(getApplicationContext());        
-        ll.setOrientation(LinearLayout.VERTICAL);
+                               
         mHandler.sendMessage(mHandler.obtainMessage(PROGRESS));
         
-        ImageView iv=new ImageView(getApplicationContext());
-        iv.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.title));
-                
-        ll0.addView(iv);
+        LinearLayout ll0=(LinearLayout)findViewById(R.id.title);
         
-        ll0.addView(ll);
+        ImageView iv=new ImageView(getApplicationContext());
+        iv.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.title));                
+        ll0.addView(iv);
         
         String svcName = Context.NOTIFICATION_SERVICE;        
         notificationManager = (NotificationManager)getSystemService(svcName);
         
         prefs = loadPreferences();        
         
+        LinearLayout ll1=(LinearLayout)findViewById(R.id.info);
         tvHelp=new TextView(getApplicationContext());
         tvHelp.setText(getResources().getText(R.string.welcome));
         tvHelp.setTextColor(Color.WHITE);
         tvHelp.setTextSize(14);        
-        ll.addView(tvHelp);      
-        
-        ScrollView sv=new ScrollView(getApplicationContext());
-        sv.addView(ll0);
-        setContentView(sv);
+        ll1.addView(tvHelp);                      
         
         new Handler().postDelayed(new Runnable() { 
             public void run() { 
@@ -182,6 +177,13 @@ public class DownDroid extends Activity
 	    return true;	    
     }
     
+    private void ensureUi() {
+        this.m_adapter = new DownloadListAdapter(this, R.layout.generic_list_item, m_options);
+        ListView listView = getListView();
+        listView.setAdapter(this.m_adapter);
+        listView.setSmoothScrollbarEnabled(true);               
+    }
+    
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) 
     {
@@ -195,23 +197,26 @@ public class DownDroid extends Activity
     	      {
     	    	  if (url!=null && url.startsWith("http"))
     	    	  {
-	    	    	  ll.removeView(tvHelp);
-	    	    	  if (aps.size()==0)
+    	    		  LinearLayout ll1=(LinearLayout)findViewById(R.id.info);
+	    	    	  ll1.removeAllViews();
+	    	    	  if (m_options.size()==0)
 	    	    	  {
 	    	    		  TextView titlePreferences=new TextView(getApplicationContext());
 	    	    		  titlePreferences.setText(getResources().getString(R.string.download_list));
 	    	    		  titlePreferences.setTextColor(Color.WHITE);
 	    	    		  titlePreferences.setTextSize(18);
 	    	    		  LayoutParams params = new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
-	    	    		  ll.addView(titlePreferences,params);
+	    	    		  ll1.addView(titlePreferences,params);
 	    	    	  }
 	    	    	  int i=dsInterface.getDownloadlistSize();
 	    	    	  if (i==0)
 	    	    		  i++;
 	    	    	  dsInterface.addFileDownloadlist(url, i);
-	    	    	  ARProgressBar ap = (ARProgressBar) new ARProgressBar(getApplicationContext(),dsInterface,i);	        	
-	    	    	  ll.addView(ap, 320, 200);
-		    	      aps.add(ap);		    	      	    	    	 
+	    	    	  PendingDownload pd=new PendingDownload();
+	    	    	  pd.setUrl(url);
+	    	    	  m_options.add(pd);	
+	    	    	  m_adapter.notifyDataSetChanged();
+		    	      notification(getResources().getString(R.string.notification_started),getResources().getString(R.string.notification_started_desc));
     	    	  }
     	    	  else
     	    		  Toast.makeText(getApplicationContext(), getResources().getString(R.string.invalid_link), Toast.LENGTH_LONG).show();
@@ -237,15 +242,16 @@ public class DownDroid extends Activity
             	StringTokenizer st=new StringTokenizer(clipboardText, " ");
             	if (st.hasMoreElements() && clipboardText.indexOf("http")>=0)
             	{
-            		ll.removeView(tvHelp);
-		    		if (aps.size()==0)
+            		LinearLayout ll1=(LinearLayout)findViewById(R.id.info);
+	    	    	ll1.removeAllViews();
+		    		if (m_options.size()==0)
 		    		{
 		    			TextView titlePreferences=new TextView(getApplicationContext());
 		    			titlePreferences.setText(getResources().getString(R.string.download_list));
 		    			titlePreferences.setTextColor(Color.WHITE);
 		    			titlePreferences.setTextSize(18);
 		    			LayoutParams params = new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
-		    			ll.addView(titlePreferences,params);
+		    			ll1.addView(titlePreferences,params);
 		    		}		    		
 		    		i=0;
 		    		try
@@ -266,9 +272,9 @@ public class DownDroid extends Activity
 	            			try
 	            			{
 	            				dsInterface.addFileDownloadlist(url, i);
-	            				ARProgressBar ap = (ARProgressBar) new ARProgressBar(getApplicationContext(),dsInterface,i++);
-		    	    	        ll.addView(ap, 320, 200);
-		    	    	        aps.add(ap);
+	            				PendingDownload pd=new PendingDownload();
+	            				pd.setUrl(url);
+		    	    	        m_options.add(pd);		    	    	        
 	            			}
 	            			catch (Exception ex)
 	            			{
@@ -277,6 +283,7 @@ public class DownDroid extends Activity
 	            		}
 	            	}
 	            	notification(getResources().getString(R.string.notification_started),getResources().getString(R.string.notification_started_desc));
+	            	m_adapter.notifyDataSetChanged();
             	}
             	else
             		Toast.makeText(getApplicationContext(), getResources().getString(R.string.no_links_found_on_clipboard), Toast.LENGTH_LONG).show();
@@ -308,12 +315,13 @@ public class DownDroid extends Activity
 	    	case CLEAR :
 	    		try
 	    		{
-	    			while (aps.size()>0)
-	    				aps.remove(0);
+	    			m_options.clear();
+	    			m_adapter.notifyDataSetChanged();
 	    			dsInterface.clearDownloadlist();
-	                ll.removeAllViews();                
+	    			LinearLayout ll1=(LinearLayout)findViewById(R.id.info);
+	    	    	ll1.removeAllViews();                
 	                download_index=0;
-	                ll.addView(tvHelp); 
+	                ll1.addView(tvHelp); 
 	                notificationManager.cancel(1);            	
 	                new Handler().postDelayed(new Runnable() { 
 	                    public void run() { 
@@ -354,9 +362,7 @@ public class DownDroid extends Activity
     	SharedPreferences mySharedPreferences = getSharedPreferences(DownDroid.PREFERENCES,mode);
     	Preferences p=new Preferences();
     	p.setMegaupload_user(mySharedPreferences.getString("megaupload_user", null));
-    	p.setMegaupload_password(mySharedPreferences.getString("megaupload_password", null));
-    	p.setRapidshare_user(mySharedPreferences.getString("rapidshare_user", null));
-    	p.setRapidshare_password(mySharedPreferences.getString("rapidshare_password", null));
+    	p.setMegaupload_password(mySharedPreferences.getString("megaupload_password", null));    	
     	return p;
     }
     
@@ -367,8 +373,6 @@ public class DownDroid extends Activity
     	SharedPreferences.Editor editor = mySharedPreferences.edit();
     	editor.putString("megaupload_user", preferences.getMegaupload_user());
     	editor.putString("megaupload_password", preferences.getMegaupload_password());
-    	editor.putString("rapidshare_user", preferences.getRapidshare_user());
-    	editor.putString("rapidshare_password", preferences.getRapidshare_password());
     	editor.commit();
     	DownDroid.prefs=preferences;
     }
