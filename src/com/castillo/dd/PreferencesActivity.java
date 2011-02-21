@@ -61,21 +61,6 @@ public class PreferencesActivity extends Activity
 		ll.addView(lmegauploadpassword,params);
 		ll.addView(tmegauploadpassword,params);
 		
-		/*TextView lrapidshareuser=new TextView(getApplicationContext());
-		lrapidshareuser.setText(getResources().getString(R.string.rapidshare_user));
-		EditText trapidshareuser=new EditText(getApplicationContext());
-		trapidshareuser.setTag("rapidshareuser");
-		ll.addView(lrapidshareuser,params);
-		ll.addView(trapidshareuser,params);	    
-		trapidshareuser.setText(prefs.getRapidshare_user());
-		TextView lrapidsharepassword=new TextView(getApplicationContext());
-		lrapidsharepassword.setText(getResources().getString(R.string.rapidshare_password));
-		EditText trapidsharepassword=new EditText(getApplicationContext());
-		trapidsharepassword.setText(prefs.getRapidshare_password());
-		trapidsharepassword.setTag("rapidsharepassword");
-		ll.addView(lrapidsharepassword,params);
-		ll.addView(trapidsharepassword,params);*/
-		
 		Button bSave=new Button(getApplicationContext());
 		bSave.setText(getResources().getString(R.string.save_preferences));	    
 		bSave.setOnClickListener(new OnClickListener() {			
@@ -84,18 +69,13 @@ public class PreferencesActivity extends Activity
 				LinearLayout ll=(LinearLayout)v.getParent().getParent();
 				preferences.setMegaupload_user(((TextView)ll.findViewWithTag("megauploaduser")).getText().toString());
 				preferences.setMegaupload_password(((TextView)ll.findViewWithTag("megauploadpassword")).getText().toString());
-				preferences.setRapidshare_user(((TextView)ll.findViewWithTag("rapidshareuser")).getText().toString());
-				preferences.setRapidshare_password(((TextView)ll.findViewWithTag("rapidsharepassword")).getText().toString());
 				savePreferences(preferences);
 				finish();
 			}
 		});
-		/*Button bCancel=new Button(getApplicationContext());
-		bCancel.setText("Exit without saving");*/
 		LinearLayout llButtons=new LinearLayout(getApplicationContext());
 		llButtons.addView(bSave,params);
-		//llButtons.addView(bCancel,params);		
-        ll.addView(llButtons);
+		ll.addView(llButtons);
         
 		setContentView(ll0);        
     }
@@ -107,8 +87,6 @@ public class PreferencesActivity extends Activity
     	Preferences p=new Preferences();
     	p.setMegaupload_user(mySharedPreferences.getString("megaupload_user", null));
     	p.setMegaupload_password(mySharedPreferences.getString("megaupload_password", null));
-    	p.setRapidshare_user(mySharedPreferences.getString("rapidshare_user", null));
-    	p.setRapidshare_password(mySharedPreferences.getString("rapidshare_password", null));
     	return p;
     }
     
@@ -119,8 +97,6 @@ public class PreferencesActivity extends Activity
     	SharedPreferences.Editor editor = mySharedPreferences.edit();
     	editor.putString("megaupload_user", preferences.getMegaupload_user());
     	editor.putString("megaupload_password", preferences.getMegaupload_password());
-    	editor.putString("rapidshare_user", preferences.getRapidshare_user());
-    	editor.putString("rapidshare_password", preferences.getRapidshare_password());
     	editor.commit();
     	DownDroid.prefs=preferences;
     }
