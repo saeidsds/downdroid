@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
@@ -13,6 +14,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class PreferencesActivity extends Activity
 {
@@ -58,6 +60,7 @@ public class PreferencesActivity extends Activity
 		EditText tmegauploadpassword=new EditText(getApplicationContext());
 		tmegauploadpassword.setText(prefs.getMegaupload_password());
 		tmegauploadpassword.setTag("megauploadpassword");
+		tmegauploadpassword.setTransformationMethod(new PasswordTransformationMethod());
 		ll.addView(lmegauploadpassword,params);
 		ll.addView(tmegauploadpassword,params);
 		
@@ -99,5 +102,17 @@ public class PreferencesActivity extends Activity
     	editor.putString("megaupload_password", preferences.getMegaupload_password());
     	editor.commit();
     	DownDroid.prefs=preferences;
+    	
+    	try
+    	{
+	    	if (DownDroid.isPremium())
+	    		Toast.makeText(getApplicationContext(), "Premium account", Toast.LENGTH_LONG).show();
+	    	else
+	    		Toast.makeText(getApplicationContext(), "Regular account", Toast.LENGTH_LONG).show();
+    	}
+    	catch (Exception ex)
+    	{
+    		Toast.makeText(getApplicationContext(), "Invalid account", Toast.LENGTH_LONG).show();
+    	}
     }
 }

@@ -1,12 +1,6 @@
 package com.castillo.dd;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
@@ -15,7 +9,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.ByteArrayBuffer;
 
 import android.app.Activity;
 import android.app.ListActivity;
@@ -43,9 +36,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.admob.android.ads.AdView;
-
 import de.mastacode.http.Http;
 
 public class DownDroid extends ListActivity
@@ -64,7 +54,11 @@ public class DownDroid extends ListActivity
 	
 	NotificationManager notificationManager;
 	
-	public static Preferences prefs; 
+	public static Preferences prefs;
+	
+	public static boolean isPremium=false;
+	public static boolean isValid=true;
+	public static String cookie;
 	
 	static final private int PASTE = Menu.FIRST;
 	static final private int ADD = Menu.FIRST + 1;
@@ -154,11 +148,11 @@ public class DownDroid extends ListActivity
         iv.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.title));                
         ll0.addView(iv);
         
-        AdView ad = new AdView(getApplicationContext());
+        /*AdView ad = new AdView(getApplicationContext());
         ad.setBackgroundColor(Color.BLACK);
         ad.setTextColor(Color.WHITE);
         ad.setVisibility(AdView.VISIBLE);
-        ll0.addView(ad);
+        ll0.addView(ad);*/
         
         String svcName = Context.NOTIFICATION_SERVICE;        
         notificationManager = (NotificationManager)getSystemService(svcName);
@@ -174,7 +168,8 @@ public class DownDroid extends ListActivity
         
         new Handler().postDelayed(new Runnable() { 
             public void run() { 
-                openOptionsMenu();                
+            	isPremium();
+            	openOptionsMenu();                
             } 
         }, 1000); 
     }
@@ -400,37 +395,7 @@ public class DownDroid extends ListActivity
     	DownDroid.prefs=preferences;
     }
     
-    // Methods to test the megaupload connection with this cookie    
-    private void testMegauploadConnection(String cookie)
-    {
-    	String surl=getMegauploadURL("http://www.megaupload.com/?d=6Y5JD5FG", cookie);
-    	downloadFromUrl(surl,"/sdcard/dd/OK.txt");
-    	File f=new File("/sdcard/dd/OK.txt");
-    	f.delete();
-    }
-    
-    private void downloadFromUrl(String surl, String fileName) {
-        try {
-                URL url = new URL(surl);
-                File file = new File(fileName);
-                URLConnection ucon = url.openConnection();
-                InputStream is = ucon.getInputStream();
-                BufferedInputStream bis = new BufferedInputStream(is);
-                ByteArrayBuffer baf = new ByteArrayBuffer(50);
-                int current = 0;
-                while ((current = bis.read()) != -1) {
-                        baf.append((byte) current);
-                }
-                FileOutputStream fos = new FileOutputStream(file);
-                fos.write(baf.toByteArray());
-                fos.close();                
-
-        } catch (IOException e) {
-                Log.e("DownDroid", "testMegauploadConnection DownloadFromUrl failed");
-        }
-    }
-    
-    private String getMegauploadCookie()
+    private static String getMegauploadCookie()
     {
     	String ret="";
     	try
@@ -455,35 +420,36 @@ public class DownDroid extends ListActivity
     	return ret;
     }    
     
-    private String getMegauploadURL(String url, String cookie)
+    public static boolean isPremium()
     {
-    	String ret="";
-    	HttpResponse response=null;
-    	while (ret.length()==0)
+    	try
     	{
-	    	try
-	    	{
-	    		HttpClient client=new DefaultHttpClient();
-    			client.getParams().setParameter(ClientPNames.HANDLE_REDIRECTS,false);
-		    	response = 
-	    		    Http.get(url)
-	    		        .use(client)
-	    		        .header("Cookie","l=es; user="+cookie+"; __utma=216392970.1949298155801896700.1244535146.1247056407.1258354625.5;	__utmb=216392970.1.10.1258354625;	__utmc=216392970;	__utmz=216392970.1247041692.3.2.utmcsr=vagos.wamba.com|utmccn=(referral)|utmcmd=referral|utmcct=/showthread.php")
-	    		        .asResponse();
-		    	ret=((Header)response.getHeaders("location")[0]).getValue();    			    		
-	    	}
-	    	catch (Exception ex)
-	    	{
-	    		try
-	    		{
-	    			ret=((Header)response.getHeaders("Location")[0]).getValue();
-	    		}
-	    		catch (Exception ex2)
-	    		{
-	    			Log.e("DownDroid", "testMegauploadConnection getMegauploadURL failed");
-	    		}
-	    	}
+    		cookie=getMegauploadCookie();
+    		isPremium=isPremium(cookie);
     	}
-    	return ret;
+    	catch (Exception ex)
+    	{
+    		isValid=false;
+    	}
+    	return isPremium;
+    }
+    
+    public static boolean isPremium(String cookie) throws Exception
+    {
+		HttpClient client=new DefaultHttpClient();
+    	client.getParams().setParameter(ClientPNames.HANDLE_REDIRECTS,false);
+    	HttpResponse response = 
+    		Http.get("http://www.megaupload.com/?c=account")
+	        .use(client)
+	        .header("Cookie","l=en; user="+cookie+"; __utma=216392970.1949298155801896700.1244535146.1247056407.1258354625.5;	__utmb=216392970.1.10.1258354625;	__utmc=216392970;	__utmz=216392970.1247041692.3.2.utmcsr=vagos.wamba.com|utmccn=(referral)|utmcmd=referral|utmcct=/showthread.php")
+	        .asResponse();    		
+    	String page=Http.asString(response, "utf-8");
+    	if (page.indexOf("<div class=\"account_txt\">Premium")>0)
+    		return true;
+    	else
+    		return false;
+    	/*if (page.indexOf("<b>Regular</b>")>0)
+    		return false;*/
+    	//throw new Exception();    	    	
     }
 }

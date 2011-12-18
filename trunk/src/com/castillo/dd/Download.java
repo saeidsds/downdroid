@@ -45,6 +45,8 @@ class Download extends Observable implements Runnable {
     private long launchTime=0;
     private long startTime=0;
     
+    private boolean realUrl=false;
+    
     Preferences prefs;
     
     public String getOrder()
@@ -178,82 +180,63 @@ class Download extends Observable implements Runnable {
         this.fileName = fileName;
     }
     
-    public String getMegauploadCookie()
+    private URL getMegauploadURL(String url)
     {
-    	String ret="";
-    	try
-    	{
-	    	HttpClient client=new DefaultHttpClient();
-	    	client.getParams().setParameter(ClientPNames.HANDLE_REDIRECTS,false);
-	    	HttpResponse response = 
-    		    Http.post("http://www.megaupload.com")
-    		        .use(client)
-    		        .data("login", "1")
-    		        .data("redir", "1")
-    		        .data("username", DownDroid.prefs.getMegaupload_user())
-    		        .data("password", DownDroid.prefs.getMegaupload_password())
-    		        .asResponse();
-	    	ret=((Header)response.getHeaders("Set-Cookie")[0]).getValue();
-    		ret=ret.substring(ret.indexOf("=")+1, ret.indexOf(";"));    		
-    	}
-    	catch (Exception ex)
-    	{
-    		Log.e("DownDroid", "(Megaupload) Cookie failed");
-    	}
-    	return ret;
-    }    
-    
-    public String getMegauploadURL(String url, String cookie)
-    {
-    	String ret="";
-    	HttpResponse response=null;
-    	while (ret.length()==0)
+    	URL ret=null;
+    	String sUrl="";
+    	HttpResponse response=null;    	
+    	
+    	while (sUrl.length()==0)
     	{
 	    	try
 	    	{
 	    		HttpClient client=new DefaultHttpClient();
-	    		if (cookie==null || cookie.trim().length()==0)
+	    		if (!DownDroid.isValid || (DownDroid.isValid && !DownDroid.isPremium))
 	    		{
 	    			client.getParams().setParameter(ClientPNames.HANDLE_REDIRECTS,true);
 	    			response = 
 		    		    Http.get(url)
 		    		        .use(client)
 		    		        .asResponse();
-	    			Thread.sleep(45000);
-			    	ret=Http.asString(response, "utf-8");
-			    	ret=ret.substring(ret.indexOf("downloadlink")+23);
-			    	ret=ret.substring(0, ret.indexOf("\""));
+	    			Thread.sleep(60000);
+	    			sUrl=Http.asString(response, "utf-8");
+	    			sUrl=sUrl.substring(sUrl.indexOf("download_regular_disabled")+79);
+	    			sUrl=sUrl.substring(0, sUrl.indexOf("\""));    			
+	    			ret=new URL(sUrl);
 	    		}
-	    		else
+	    		else if (DownDroid.isPremium)
 	    		{	    				    				    	
 			    	client.getParams().setParameter(ClientPNames.HANDLE_REDIRECTS,false);
 			    	response = 
 		    		    Http.get(url)
 		    		        .use(client)
-		    		        .header("Cookie","l=es; user="+cookie+"; __utma=216392970.1949298155801896700.1244535146.1247056407.1258354625.5;	__utmb=216392970.1.10.1258354625;	__utmc=216392970;	__utmz=216392970.1247041692.3.2.utmcsr=vagos.wamba.com|utmccn=(referral)|utmcmd=referral|utmcct=/showthread.php")
+		    		        .header("Cookie","l=es; user="+DownDroid.cookie+"; __utma=216392970.1949298155801896700.1244535146.1247056407.1258354625.5;	__utmb=216392970.1.10.1258354625;	__utmc=216392970;	__utmz=216392970.1247041692.3.2.utmcsr=vagos.wamba.com|utmccn=(referral)|utmcmd=referral|utmcct=/showthread.php")
 		    		        .asResponse();
 			    	if (response.containsHeader("location"))
-			    		ret=((Header)response.getHeaders("location")[0]).getValue();
+			    		sUrl=((Header)response.getHeaders("location")[0]).getValue();
 			    	else
 			    	{
-			    		ret=Http.asString(response, "utf-8");
-				    	ret=ret.substring(ret.indexOf("down_ad_pad1")+37);
-				    	ret=ret.substring(0, ret.indexOf("\""));
+			    		sUrl=Http.asString(response, "utf-8");
+			    		sUrl=sUrl.substring(sUrl.indexOf("download_member_bl")+68);
+			    		sUrl=sUrl.substring(0, sUrl.indexOf("\""));
 			    	}
+			    	ret=new URL(sUrl);
 	    		}
 	    	}
 	    	catch (Exception ex)
 	    	{
 	    		try
 	    		{
-	    			ret=((Header)response.getHeaders("Location")[0]).getValue();
+	    			sUrl=((Header)response.getHeaders("Location")[0]).getValue();	    			
+	    			ret=new URL(sUrl);
 	    		}
 	    		catch (Exception ex2)
 	    		{
-	    			Log.e("DownDroid", "(Megaupload) Download url failed");
+	    			Log.e("DownDroidS", "(Megaupload) Download url failed");
 	    		}
 	    	}
-    	}
+    	}    	
+    	realUrl=true;
     	return ret;
     }
     
@@ -265,7 +248,10 @@ class Download extends Observable implements Runnable {
         
         try {
         	if (launchTime==0)
+        	{
         		launchTime=Calendar.getInstance().getTimeInMillis();
+        		realUrl=false;
+        	}
             // Open connection to URL.
             HttpURLConnection connection =
                     (HttpURLConnection) url.openConnection();
@@ -275,7 +261,7 @@ class Download extends Observable implements Runnable {
             if (url.getHost().indexOf("megaupload")>=0)
             {
             	if (DownDroid.prefs.megaupload_user!=null && DownDroid.prefs.megaupload_user.trim().length()>0)
-	            	cookie=getMegauploadCookie();	            		            	
+	            	cookie=DownDroid.cookie;	            		            	
             	if (cookie.length()!=0)            	
             		connection.setRequestProperty("Cookie","l=es; user="+cookie+"; __utma=216392970.1949298155801896700.1244535146.1247056407.1258354625.5;	__utmb=216392970.1.10.1258354625;	__utmc=216392970;	__utmz=216392970.1247041692.3.2.utmcsr=vagos.wamba.com|utmccn=(referral)|utmcmd=referral|utmcct=/showthread.php");          	
             }
@@ -291,14 +277,13 @@ class Download extends Observable implements Runnable {
 	            
 	            // Check for valid content length.
 	            int contentLength = connection.getContentLength();
-	            if (contentLength < 1 || (connection.getResponseMessage().equalsIgnoreCase("OK") && url.getHost().indexOf("rapidshare")>=0)) {
+	            if (contentLength < 1 || !realUrl) {
 	            	if (url.getHost().indexOf("megaupload")>=0)
 	            	{	            		
-            			while (contentLength < 1)
+            			while (contentLength < 1 || !realUrl)
             			{
-            				String newURL=getMegauploadURL(url.toString(),cookie);
-            				Log.e("DownDroid", newURL);
-            				url=new URL(newURL);            				            				
+            				url=getMegauploadURL(url.toString());
+            				Log.e("DownDroid", url.getFile());
             				connection=(HttpURLConnection)url.openConnection();
             				contentLength = connection.getContentLength();
             				Log.e("DownDroid", String.valueOf(contentLength));
